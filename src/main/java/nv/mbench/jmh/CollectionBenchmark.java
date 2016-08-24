@@ -6,10 +6,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created on 24/8/2016.
@@ -25,6 +22,8 @@ public class CollectionBenchmark {
     LinkedListSt emptyLinkedList;
     ArrayListSt emptyArrayList;
     ArrayListSt preallocatedArrayList;
+    ArrayDequeSt<Integer> preallocatedDeque;
+    ArrayDequeSt<Integer> emtpyDeque;
 
     @State(Scope.Thread)
     public static class Index {
@@ -55,6 +54,34 @@ public class CollectionBenchmark {
         }
     }
 
+    @State(Scope.Thread)
+    public static class ArrayDequeSt<T> {
+        final ArrayDeque<T> deque;
+        int index = 0;
+
+        public ArrayDequeSt() {
+            deque = new ArrayDeque<>();
+        }
+
+        public void append(T element) {
+            deque.addLast(element);
+            index++;
+        }
+
+        public void prepend(T element) {
+            deque.addFirst(element);
+            index++;
+        }
+
+        public void resetIndex() {
+            index = 0;
+        }
+
+        public int incrementIndex() {
+            return ++index;
+        }
+    }
+
     @Benchmark
     @BenchmarkMode(Mode.SingleShotTime)
     @Measurement(batchSize = OBJECTS_NO)
@@ -64,6 +91,17 @@ public class CollectionBenchmark {
         emptyArrayList.add(index.ar[i]);
 
         return emptyArrayList;
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.SingleShotTime)
+    @Measurement(batchSize = OBJECTS_NO)
+    @Warmup(batchSize = OBJECTS_NO)
+    public Collection<Integer> addToEmptyDeque(Index index) {
+        int i = emtpyDeque.incrementIndex() % OBJECTS_NO;
+        emtpyDeque.append(index.ar[i]);
+
+        return emtpyDeque.deque;
     }
 
     @Benchmark
@@ -81,7 +119,7 @@ public class CollectionBenchmark {
     @BenchmarkMode(Mode.SingleShotTime)
     @Measurement(batchSize = 10000)
     @Warmup(batchSize = 100)
-    public Integer randomGetFromPreallocatedArrayList(Index index) {
+    public Integer randomIndexedGetFromPreallocatedArrayList(Index index) {
         int i = preallocatedArrayList.incrementIndex() % OBJECTS_NO;
         return preallocatedArrayList.get(index.ar[i]);
     }
@@ -90,7 +128,7 @@ public class CollectionBenchmark {
     @BenchmarkMode(Mode.SingleShotTime)
     @Measurement(batchSize = 10000)
     @Warmup(batchSize = 100)
-    public Integer randomGetFromPreallocatedLinkedList(Index index) {
+    public Integer randomIndexedGetFromPreallocatedLinkedList(Index index) {
         int i = preallocatedLinkedList.incrementIndex() % OBJECTS_NO;
         return preallocatedLinkedList.get(index.ar[i]);
     }
@@ -117,7 +155,7 @@ public class CollectionBenchmark {
     @BenchmarkMode(Mode.SingleShotTime)
     @Measurement(batchSize = 10000)
     @Warmup(batchSize = 100)
-    public List<Integer> addAtRandomToPreallocatedArrayList(Index index) {
+    public List<Integer> addAtRandomIndexToPreallocatedArrayList(Index index) {
         int i = preallocatedArrayList.incrementIndex() % OBJECTS_NO;
         preallocatedArrayList.add(index.ar[i], i);
 
@@ -128,9 +166,42 @@ public class CollectionBenchmark {
     @BenchmarkMode(Mode.SingleShotTime)
     @Measurement(batchSize = 10000)
     @Warmup(batchSize = 100)
-    public List<Integer> addAtRandomToPreallocatedLinkedList(Index index) {
+    public List<Integer> addAtRandomIndexToPreallocatedLinkedList(Index index) {
         int i = preallocatedLinkedList.incrementIndex() % OBJECTS_NO;
         preallocatedLinkedList.add(index.ar[i], i);
+
+        return preallocatedLinkedList.underlying();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.SingleShotTime)
+    @Measurement(batchSize = 10000)
+    @Warmup(batchSize = 100)
+    public List<Integer> prependToPreallocatedArrayList(Index index) {
+        int i = preallocatedArrayList.incrementIndex() % OBJECTS_NO;
+        preallocatedArrayList.add(0, index.ar[i]);
+
+        return preallocatedArrayList.underlying();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.SingleShotTime)
+    @Measurement(batchSize = 10000)
+    @Warmup(batchSize = 100)
+    public Collection<Integer> prependToPreallocatedDeque(Index index) {
+        int i = preallocatedDeque.incrementIndex() % OBJECTS_NO;
+        preallocatedDeque.prepend(index.ar[i]);
+
+        return preallocatedDeque.deque;
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.SingleShotTime)
+    @Measurement(batchSize = 10000)
+    @Warmup(batchSize = 100)
+    public List<Integer> prependToPreallocatedLinkedList(Index index) {
+        int i = preallocatedLinkedList.incrementIndex() % OBJECTS_NO;
+        preallocatedLinkedList.add(0, index.ar[i]);
 
         return preallocatedLinkedList.underlying();
     }
@@ -157,24 +228,39 @@ public class CollectionBenchmark {
         preallocatedArrayList.resetIndex();
     }
 
+    @Setup
+    public void setupPreallocatedDeque(Index index) {
+        preallocatedDeque = new ArrayDequeSt<>();
+
+        for (int i = 0; i < index.ar.length; i++) {
+            preallocatedDeque.append(0);
+        }
+
+        preallocatedDeque.resetIndex();
+    }
+
     @Setup(Level.Iteration)
     public void setupEmptyLinkedList() {
         emptyLinkedList = new LinkedListSt();
         emptyArrayList = new ArrayListSt();
+        emtpyDeque = new ArrayDequeSt<>();
     }
 
     @TearDown
     public void freePreallocatedLinkedList() {
         preallocatedLinkedList = null;
         preallocatedArrayList = null;
+        preallocatedDeque = null;
     }
 
     @TearDown(Level.Iteration)
     public void freeEmLinkedList() {
         emptyLinkedList = null;
         emptyArrayList = null;
+        emtpyDeque = null;
         preallocatedArrayList.resetIndex();
         preallocatedLinkedList.resetIndex();
+        preallocatedDeque.resetIndex();
     }
 
     public static void main(String[] args) throws RunnerException {
