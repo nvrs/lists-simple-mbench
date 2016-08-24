@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by nviorres on 24/8/2016.
+ * Created on 24/8/2016.
  */
 @SuppressWarnings("Duplicates")
 @State(Scope.Thread)
@@ -167,7 +167,6 @@ public class CollectionBenchmark {
     public void freePreallocatedLinkedList() {
         preallocatedLinkedList = null;
         preallocatedArrayList = null;
-//        System.gc();
     }
 
     @TearDown(Level.Iteration)
@@ -176,7 +175,6 @@ public class CollectionBenchmark {
         emptyArrayList = null;
         preallocatedArrayList.resetIndex();
         preallocatedLinkedList.resetIndex();
-//        System.gc();
     }
 
     public static void main(String[] args) throws RunnerException {
