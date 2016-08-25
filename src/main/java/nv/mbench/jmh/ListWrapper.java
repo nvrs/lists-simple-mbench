@@ -3,7 +3,7 @@ package nv.mbench.jmh;
 import java.util.List;
 
 /**
- * Created by nviorres on 24/8/2016.
+ * Created on 24/8/2016.
  */
 public class ListWrapper<T> {
     private List<T> list;
