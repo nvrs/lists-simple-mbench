@@ -11,7 +11,6 @@ import java.util.*;
 /**
  * Created on 24/8/2016.
  */
-@SuppressWarnings("Duplicates")
 @State(Scope.Thread)
 public class CollectionBenchmark {
 
