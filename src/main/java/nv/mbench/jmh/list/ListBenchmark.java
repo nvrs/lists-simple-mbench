@@ -126,26 +126,24 @@ public abstract class ListBenchmark {
     }
 
     public static void main(String[] args) throws RunnerException {
+        start("AddFirst|AddLast|AddRandomIndex|GetRandomIndex|SetRandomIndex");
+    }
+
+    public static void start(String regex, int warmupIterations, int measurementIterations, int forks)
+            throws RunnerException {
+
         Options opt = new OptionsBuilder()
-                .include("AddFirst|AddLast|AddRandomIndex|GetRandomIndex|SetRandomIndex")
-                .warmupIterations(5)
-                .measurementIterations(5)
+                .include(regex)
+                .warmupIterations(warmupIterations)
+                .measurementIterations(measurementIterations)
                 .shouldDoGC(true)
-                .forks(0)
+                .forks(forks)
                 .build();
 
         new Runner(opt).run();
     }
 
     public static void start(String regex) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(regex)
-                .warmupIterations(5)
-                .measurementIterations(5)
-                .shouldDoGC(true)
-                .forks(0)
-                .build();
-
-        new Runner(opt).run();
+        start(regex, 5, 5, 0);
     }
 }
