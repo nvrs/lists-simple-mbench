@@ -1,4 +1,4 @@
-package nv.mbench.jmh;
+package nv.mbench.jmh.list;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.RunnerException;
